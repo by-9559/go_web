@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
-	"io"
+	"net"
 	"net/http"
+	"strings"
+	"time"
 	"web/database"
 
 	"github.com/gin-gonic/gin"
@@ -12,40 +14,50 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type LoginForm struct {
-	user     string `form:"user" binding:"required"`
-	pwd string `form:"password" binding:"required"`
+type DDNS struct {
+	Domain string    `bson:"domain"`
+	Date   time.Time `bson:"date"`
 }
 
 func GetApi() {
 	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
+	// router.LoadHTMLGlob("templates/*")
+	collection := database.GetDB().Database("test").Collection("DDNS")
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": fmt.Sprintf("https://%s:35212/", get_external()),
-		})
-	})
-
-	router.GET("/ip", func(c *gin.Context) {
-		coll := database.GetDB().Database("test").Collection("IOC_data")
-		var result bson.M
-		err := coll.FindOne(context.TODO(), bson.D{{Key: "test", Value: "test"}}).Decode(&result)
-		cursor, err := coll.Find(context.TODO(), bson.D{{Key: "test", Value: "test"}})
-		var results []bson.M
-		if err = cursor.All(context.TODO(), &results); err != nil {
-			panic(err)
+		ip := strings.Split(c.Request.Header.Get("X-Forwarded-For"), ",")[0]
+		if ip == "" {
+			ip = c.Request.RemoteAddr
 		}
-		if err == mongo.ErrNoDocuments {
-			fmt.Printf("No document was found with the title %s\n", "title")
+		ip = strings.TrimSpace(ip)
+	
+		// 如果IP地址是IPv6地址，则使用SplitHostPort函数来分割IP地址和端口号
+		if strings.Contains(ip, ":") {
+			ip, _, _ = net.SplitHostPort(ip)
+		}
+	
+		filter := bson.M{"domain": ip}
+		var result DDNS
+		err := collection.FindOne(context.Background(), filter).Decode(&result)
+		if err != nil && err != mongo.ErrNoDocuments {
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
-		if err != nil {
-			panic(err)
+	
+		if err == mongo.ErrNoDocuments {
+			currentTime := time.Now().UTC()
+			record := DDNS{Domain: ip, Date: currentTime}
+			_, err := collection.InsertOne(context.Background(), record)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
 		}
-		// coll.InsertOne(context.TODO(),bson.D{{Key: "test",Value: "test"},{Key: "test2",Value: "test2"}})
-
-		c.JSONP(http.StatusOK, results)
+	
+		c.String(http.StatusOK, ip)
 	})
+	
+
+
 
 	router.POST("/login", func(c *gin.Context) {
 		param := make(map[string]interface{})
@@ -62,12 +74,4 @@ func GetApi() {
 	router.Run(":8081")
 }
 
-func get_external() string {
-	resp, err := http.Get("http://myexternalip.com/raw")
-	if err != nil {
-		return ""
-	}
-	defer resp.Body.Close()
-	content, _ := io.ReadAll(resp.Body)
-	return string(content)
-}
+
