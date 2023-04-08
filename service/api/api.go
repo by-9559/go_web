@@ -67,8 +67,12 @@ func GetApi() {
 			if err != nil {
 				return 
 			}
+	})
 
-	
+	router.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "极简生活",
+		})
 	})
 
 	router.Run("[::]:8081")

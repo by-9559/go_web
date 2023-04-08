@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>强流明中转站</title>
+    <title>极简生活</title>
 </head>
 <body>
-  <a href={{.title}}><button id="button" >网盘 </button></a>
+  <a href="/"><button id="button" >获取IP</button></a>
 <h1 >{{.title}}</h1>
 
 <div id="app"></div>
@@ -14,7 +14,7 @@
 <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 <script type="text/babel">
     const {useState} = React
-    const But =()=>{
+    const App =()=>{
     const [ account ,setAccount] =   useState({user:"",pwd:""})
     const func =(v)=>{
     console.log(account)
@@ -31,7 +31,7 @@
         <div onChange={func2}>  
             账号:<input type="text" name="user" defaultValue={account.user} ></input>
             密码:<input type="text" name="pwd" defaultValue={account.pwd} ></input>
-            <button onClick={func}>Push</button>
+            <button onClick={func}>登录</button>
         </div>
 
 );
@@ -39,7 +39,7 @@
 
 const domContainer = document.querySelector('#app');
 const root = ReactDOM.createRoot(domContainer);
-root.render(<But/>);
+root.render(<App/>);
 </script>
 
 </body>
