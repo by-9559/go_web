@@ -25,6 +25,7 @@ func GetApi() {
 	collection := database.GetDB().Database("test").Collection("DDNS")
 	router.GET("/", func(c *gin.Context) {
 		ip := strings.Split(c.Request.Header.Get("X-Forwarded-For"), ",")[0]
+		println(c.Request.Header.Get("X-Forwarded-For"))
 		if ip == "" {
 			ip = c.Request.RemoteAddr
 		}
