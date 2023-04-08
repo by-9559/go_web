@@ -25,16 +25,11 @@ func GetApi() {
 	collection := database.GetDB().Database("test").Collection("DDNS")
 	router.GET("/", func(c *gin.Context) {
 		ip := strings.Split(c.Request.Header.Get("X-Forwarded-For"), ",")[0]
-		println(c.Request.Header.Get("X-Forwarded-For"))
 		if ip == "" {
 			ip = c.Request.RemoteAddr
-		}
-		ip = strings.TrimSpace(ip)
-	
-		// 如果IP地址是IPv6地址，则使用SplitHostPort函数来分割IP地址和端口号
-		if strings.Contains(ip, ":") {
 			ip, _, _ = net.SplitHostPort(ip)
 		}
+		ip = strings.TrimSpace(ip)
 	
 		filter := bson.M{"domain": ip}
 		var result DDNS
