@@ -7,5 +7,3 @@ import (
 func main() {
 	api.GetApi()
 }
-
-
