@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"net"
 	"net/http"
 	"strings"
 	"time"
-	"web/database"
+
+	"web/service/tcp"
+	db "web/database"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DDNS struct {
@@ -19,7 +21,8 @@ type DDNS struct {
 	Date   string `bson:"date"`
 }
 
-var collection = database.GetDB().Database("test").Collection("DDNS")
+var client = db.GetDB()
+var collection = client.Database("test").Collection("DDNS")
 
 func login(c *gin.Context) {
 	param := make(map[string]interface{})
@@ -64,4 +67,32 @@ func setip(c *gin.Context) {
 	}
 
 	c.String(200, ip)
+}
+
+type ConnectionPoolStatus struct {
+    MaxConnections int
+    NumConnections int
+    Connections    []string
+}
+
+func tcp_send(c *gin.Context) {
+	conn, err := net.Dial("tcp", "localhost:8080")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	str := ""
+	for _, conn := range *tcp.Get_connections() {
+		// 使用 conn 对象进行操作
+		fmt.Printf("对象:%s\r\n", conn.RemoteAddr())
+
+		_, err = conn.Write([]byte("你好天才"))
+	
+		str = conn.RemoteAddr().String()
+		if err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println(str)
+	c.String(http.StatusOK, "Message sent to TCP server: %s", str)
 }

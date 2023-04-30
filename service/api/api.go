@@ -2,21 +2,27 @@ package api
 
 import (
 
-	"github.com/gin-gonic/gin"
 
+	"github.com/gin-gonic/gin"
 )
 
 
 
 func GetApi() {
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
+
+
+	r := gin.Default()
+	r.LoadHTMLGlob("templates/*")
 	
-	router.GET("/",setip)
+	r.GET("/",setip)
 
-	router.POST("/login", login)
+	r.POST("/login", login)
 
-	router.GET("/login", page)
+	r.GET("/login", page)
 
-	router.Run("[::]:8081")
+	r.GET("/favicon.ico", func(c *gin.Context) {c.File("./templates/favicon.ico")})
+
+	r.GET("/send", tcp_send)
+
+	r.Run("[::]:8081")
 }
