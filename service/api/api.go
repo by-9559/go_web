@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
+
 )
 
 func GetApi() {
@@ -10,8 +10,6 @@ func GetApi() {
 	r := gin.Default()
 
 	r.LoadHTMLGlob("templates/*")
-
-	r.Use(gin.LoggerWithWriter(log.Writer()), gin.Recovery())
 
 	r.GET("/", setip)
 
@@ -22,6 +20,8 @@ func GetApi() {
 	r.GET("/favicon.ico", func(c *gin.Context) { c.File("./templates/favicon.ico") })
 
 	r.GET("/send", tcp_send)
+
+	r.GET("/ws", websocketHandler)
 
 	r.Run("[::]:8081")
 }

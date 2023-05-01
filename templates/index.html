@@ -1,61 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>极简生活</title>
-</head>
-<body>
-  <a href="/"><button id="button" >获取IP</button></a>
-<h1 >{{.title}}</h1>
 
-<div id="app"></div>
-<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-<script type="text/babel">
-    const {useState} = React
-    const App =()=>{
-    const [ account ,setAccount] =   useState({user:"",pwd:""})
-    const func =(v)=>{
-    console.log(account)
-    fetch("/login",{
-    method: 'POST',
-    body:JSON.stringify(account) 
-})
-  }
-  const func2 =(v)=>{
-    account[v.target.name] = v.target.value
-    setAccount(account)
-  }
-    return (
-        <div onChange={func2}>  
-            账号:<input type="text" name="user" defaultValue={account.user} ></input>
-            密码:<input type="text" name="pwd" defaultValue={account.pwd} ></input>
-            <button onClick={func}>登录</button>
+<head>
+  <meta charset="UTF-8">
+  <title>极简生活</title>
+</head>
+
+<body>
+  <a href="/"><button id="button">获取IP</button></a>
+  <h1>{{.title}}</h1>
+
+  <div id="app"></div>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useEffect } = React
+    const { WebSocket } = window
+    const App = () => {
+      const [account, setAccount] = useState({ user: "", pwd: "" })
+      const func = (v) => {
+        console.log(account)
+        fetch("/login", {
+          method: 'POST',
+          body: JSON.stringify(account)
+        })
+      }
+      const func2 = (v) => {
+        account[v.target.name] = v.target.value
+        setAccount(account)
+      }
+      return (
+        <div onChange={func2}>
+          账号:<input type="text" name="user" defaultValue={account.user} ></input>
+          密码:<input type="text" name="pwd" defaultValue={account.pwd} ></input>
+          <button onClick={func}>登录</button>
+          <ChatBox />
         </div>
 
-);
-}
+      );
+    }
+    // import React, { useState, useEffect } from 'react';
+    // import WebSocket from 'websocket';
 
-const domContainer = document.querySelector('#app');
-const root = ReactDOM.createRoot(domContainer);
-root.render(<App/>);
-</script>
+    const ChatBox = () => {
+      const [socket, setSocket] = useState(null);
+      const [messages, setMessages] = useState([]);
+
+      useEffect(() => {
+        const ws = new WebSocket('ws://localhost:8081/ws');
+        setSocket(ws);
+
+        ws.onopen = () => {
+          console.log('WebSocket connection opened');
+        };
+
+        ws.onmessage = (event) => {
+          const message = JSON.parse(event.data);
+          setMessages(message);
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket connection closed');
+          setSocket(null);
+        };
+
+        return () => {
+          if (socket) {
+            socket.close();
+          }
+        };
+      }, []);
+
+      const sendMessage = (text) => {
+        if (socket) {
+          console.log(text);
+          console.log(JSON.stringify({ text }));
+          socket.send( text );
+        }
+      };
+
+      return (
+        <div>
+          <h1>Chat Room</h1>
+          <MessageList messages={messages} />
+          <InputBox onSend={sendMessage} />
+        </div>
+      );
+    };
+
+    const MessageList = ({ messages }) => {
+      return (
+      <ul>
+        {messages.map((message, i) => (
+          <li key={i}>{message}</li>
+        ))}
+      </ul>
+    )};
+
+
+
+    const InputBox = ({ onSend }) => {
+
+      const [text, setText] = useState('');
+      const handleSubmit = (event) => {
+        event.preventDefault();
+        if (text.trim()) {
+          onSend(text);
+          setText('');
+        }
+      };
+      const handleChange = (event) => {
+        console.log(event.target.value);
+        setText(event.target.value);
+      }
+      return (
+        <form onSubmit={handleSubmit}>
+          <input type="text" defaultValue={text} onChange={handleChange} />
+          <button type="submit">Send</button>
+        </form>
+      );
+    };
+
+
+
+
+
+
+    const domContainer = document.querySelector('#app');
+    const root = ReactDOM.createRoot(domContainer);
+    root.render(<App />);
+  </script>
 
 </body>
+
 </html>
 
 
 
 <style>
-    #button{
-        color: #fff;
-        border-color: #ffffff;
-        background: #4e5fc7;
-        text-shadow: 0 -1px 0 rgb(0 0 0 / 12%);
-        box-shadow: 0 2px #0000000b;
-        width: 100px;
-        font-size: 16px;
+  #button {
+    color: #fff;
+    border-color: #ffffff;
+    background: #4e5fc7;
+    text-shadow: 0 -1px 0 rgb(0 0 0 / 12%);
+    box-shadow: 0 2px #0000000b;
+    width: 100px;
+    font-size: 16px;
 
-    }
+  }
 </style>
