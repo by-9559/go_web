@@ -1,8 +1,9 @@
 import socket
+from datetime import datetime
 
 # 创建一个 TCP 连接
 HOST = 'localhost'
-PORT = 8080
+PORT = 8082
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((HOST, PORT))
 
@@ -12,4 +13,8 @@ sock.sendall(message.encode())
 while 1:
     # 接收 TCP 服务器的响应
     data = sock.recv(1024)
-    print('Received:', data.decode())
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"[{timestamp}] Received: {data.decode()}")
+
+# 关闭 TCP 连接
+sock.close()

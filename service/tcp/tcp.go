@@ -11,14 +11,14 @@ var mutex sync.Mutex
 
 func TCP_go() {
 	// 监听本地的 TCP 1234 端口
-	ln, err := net.Listen("tcp", ":8080")
+	ln, err := net.Listen("tcp", ":8082")
 	if err != nil {
 		panic(err)
 	}
 
 	defer ln.Close()
 
-	fmt.Println("TCP server is running on port 8080")
+	fmt.Println("TCP server is running on port 8082")
 
 	// 定义一个连接对象的切片和一个互斥锁
 
@@ -54,13 +54,13 @@ func handleConnection(conn net.Conn, connections *[]net.Conn, mutex *sync.Mutex)
 		// 将收到的数据转成字符串并输出
 		data := string(buffer[:n])
 		// 向客户端发送响应数据
-		response := "Hello, client!"
+		response := "Hello, client!     " + conn.RemoteAddr().String()
 		_, err = conn.Write([]byte(response))
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println("Response sent to client:", response)
+		// fmt.Println("Response sent to client:", response)
 
 		// 遍历连接对象的切片，向除了当前连接外的所有连接发送消息
 		mutex.Lock()

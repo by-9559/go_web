@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script type="text/babel">
-    const { useState, useEffect ,useRef} = React
+    const { useState, useEffect, useRef } = React
     const { WebSocket } = window
     const App = () => {
       const [account, setAccount] = useState({ user: "", pwd: "" })
@@ -48,22 +48,34 @@
       const [messages, setMessages] = useState([]);
 
       useEffect(() => {
-        const ws = new WebSocket('ws://' + location.host + '/ws');
+        let ws = new WebSocket('ws://' + location.host + '/ws');
         setSocket(ws);
 
-        ws.onopen = () => {
+        const handleOpen = () => {
           console.log('WebSocket connection opened');
         };
 
-        ws.onmessage = (event) => {
+        const handleMessage = (event) => {
           const message = JSON.parse(event.data);
           setMessages(message);
         };
 
-        ws.onclose = () => {
+        const handleClose = (event) => {
           console.log('WebSocket connection closed');
           setSocket(null);
+          // Attempt to reconnect
+          setTimeout(() => {
+            ws = new WebSocket('ws://' + location.host + '/ws');
+            setSocket(ws);
+            ws.onopen = handleOpen;
+            ws.onmessage = handleMessage;
+            ws.onclose = handleClose;
+          }, 1000);
         };
+
+        ws.onopen = handleOpen;
+        ws.onmessage = handleMessage;
+        ws.onclose = handleClose;
 
         return () => {
           if (socket) {
@@ -71,6 +83,8 @@
           }
         };
       }, []);
+
+
 
       const sendMessage = (text) => {
         if (socket) {
