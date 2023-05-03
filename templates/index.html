@@ -15,7 +15,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script type="text/babel">
-    const { useState, useEffect } = React
+    const { useState, useEffect ,useRef} = React
     const { WebSocket } = window
     const App = () => {
       const [account, setAccount] = useState({ user: "", pwd: "" })
@@ -48,7 +48,7 @@
       const [messages, setMessages] = useState([]);
 
       useEffect(() => {
-        const ws = new WebSocket('ws://localhost:8081/ws');
+        const ws = new WebSocket('ws://' + location.host + '/ws');
         setSocket(ws);
 
         ws.onopen = () => {
@@ -74,9 +74,7 @@
 
       const sendMessage = (text) => {
         if (socket) {
-          console.log(text);
-          console.log(JSON.stringify({ text }));
-          socket.send( text );
+          socket.send(text);
         }
       };
 
@@ -90,13 +88,23 @@
     };
 
     const MessageList = ({ messages }) => {
+      const messagesEndRef = useRef(null);
+
+      useEffect(() => {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }, [messages]);
       return (
-      <ul>
-        {messages.map((message, i) => (
-          <li key={i}>{message}</li>
-        ))}
-      </ul>
-    )};
+
+        <ul id="wsBox">
+          {messages.map((message, i) => (
+            <li key={i}>{message}</li>
+          ))}
+          <li ref={messagesEndRef} />
+        </ul>
+
+
+      )
+    };
 
 
 
@@ -110,13 +118,14 @@
           setText('');
         }
       };
+
       const handleChange = (event) => {
-        console.log(event.target.value);
         setText(event.target.value);
       }
+
       return (
         <form onSubmit={handleSubmit}>
-          <input type="text" defaultValue={text} onChange={handleChange} />
+          <input type="text" value={text} onChange={handleChange} />
           <button type="submit">Send</button>
         </form>
       );
@@ -148,5 +157,11 @@
     width: 100px;
     font-size: 16px;
 
+  }
+
+  #wsBox {
+
+    height: 500px;
+    overflow: hidden
   }
 </style>
