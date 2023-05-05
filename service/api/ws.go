@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 	tcp "web/service/tcp"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +16,15 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-var messages []string
+var messages []string;
+
+var wsCons []*websocket.Conn
 
 func websocketHandler(c *gin.Context) {
 	// 升级HTTP连接为WebSocket连接
 	wsConn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	wsCons = append(wsCons, wsConn)
+	wsConn.WriteJSON(messages)
 	if err != nil {
 		// 处理错误
 		return
@@ -35,9 +38,7 @@ func websocketHandler(c *gin.Context) {
 			// 处理错误
 			return
 		}
-		wsConn.SetReadDeadline(time.Now().Add(3 * time.Hour))
-        wsConn.SetWriteDeadline(time.Now().Add(3 * time.Hour))
-
+		
 		// 将消息保存到切片中
 		messages = append(messages, string(p))
 
@@ -47,6 +48,17 @@ func websocketHandler(c *gin.Context) {
 			_, err = c.Write([]byte(p))
 			if err != nil {
 				fmt.Println("Failed to send data to:", c.RemoteAddr())
+			}
+
+		}
+
+		for _, c := range wsCons {
+			if c != wsConn {
+				err = c.WriteJSON(messages)
+				if err != nil {
+					removeConnection(c)
+					fmt.Println("Failed to send data to:", c.RemoteAddr())
+				}
 			}
 
 		}
@@ -60,4 +72,14 @@ func websocketHandler(c *gin.Context) {
 		}
 
 	}
+}
+
+func removeConnection(conn *websocket.Conn) {
+    for i, c := range wsCons {
+        if c == conn {
+            wsCons = append(wsCons[:i], wsCons[i+1:]...)
+            break
+        }
+    }
+    // 处理连接关闭...
 }

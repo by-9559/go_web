@@ -40,8 +40,6 @@
 
       );
     }
-    // import React, { useState, useEffect } from 'react';
-    // import WebSocket from 'websocket';
 
     const ChatBox = () => {
       const [socket, setSocket] = useState(null);
@@ -57,7 +55,10 @@
 
         const handleMessage = (event) => {
           const message = JSON.parse(event.data);
-          setMessages(message);
+          if(message){
+            setMessages(message);
+          }
+        
         };
 
         const handleClose = (event) => {
