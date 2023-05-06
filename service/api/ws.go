@@ -18,12 +18,12 @@ var upgrader = websocket.Upgrader{
 }
 
 var redis = db.GetRedis()
-
+var channel = "chat"
 var wsCons []*websocket.Conn
 
 func getChatList() []string {
-	redis.LTrim("chat", -300, -1).Result()
-	messages, _ := redis.LRange("chat", 0, -1).Result()
+	redis.LTrim(channel, -300, -1).Result()
+	messages, _ := redis.LRange(channel, 0, -1).Result()
 	return messages
 }
 
@@ -47,7 +47,7 @@ func websocketHandler(c *gin.Context) {
 			return
 		}
 
-		err = redis.RPush("chat", p).Err()
+		err = redis.RPush(channel, p).Err()
 		if err != nil {
 			panic(err)
 		}
