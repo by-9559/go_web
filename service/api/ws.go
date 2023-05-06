@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	db "web/database"
 	tcp "web/service/tcp"
 
 	"github.com/gin-gonic/gin"
@@ -16,15 +17,22 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-var messages []string;
+var redis = db.GetRedis()
 
 var wsCons []*websocket.Conn
+
+func getChatList() []string {
+	redis.LTrim("chat", -100, -1).Result()
+	messages, _ := redis.LRange("chat", 0, -1).Result()
+	return messages
+}
 
 func websocketHandler(c *gin.Context) {
 	// 升级HTTP连接为WebSocket连接
 	wsConn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	wsCons = append(wsCons, wsConn)
-	wsConn.WriteJSON(messages)
+
+	wsConn.WriteJSON(getChatList())
 	if err != nil {
 		// 处理错误
 		return
@@ -38,10 +46,11 @@ func websocketHandler(c *gin.Context) {
 			// 处理错误
 			return
 		}
-		
-		// 将消息保存到切片中
-		messages = append(messages, string(p))
 
+		err = redis.RPush("chat", p).Err()
+		if err != nil {
+			panic(err)
+		}
 		connections := tcp.Get_connections()
 		for _, c := range *connections {
 
@@ -54,7 +63,7 @@ func websocketHandler(c *gin.Context) {
 
 		for _, c := range wsCons {
 			if c != wsConn {
-				err = c.WriteJSON(messages)
+				err = c.WriteJSON(getChatList())
 				if err != nil {
 					removeConnection(c)
 					fmt.Println("Failed to send data to:", c.RemoteAddr())
@@ -65,7 +74,7 @@ func websocketHandler(c *gin.Context) {
 		// 打印接收到的消息
 		log.Printf("Received message: %s\n", p)
 
-		err = wsConn.WriteJSON(messages)
+		err = wsConn.WriteJSON(getChatList())
 		if err != nil {
 			// 处理错误
 			return
@@ -75,11 +84,11 @@ func websocketHandler(c *gin.Context) {
 }
 
 func removeConnection(conn *websocket.Conn) {
-    for i, c := range wsCons {
-        if c == conn {
-            wsCons = append(wsCons[:i], wsCons[i+1:]...)
-            break
-        }
-    }
-    // 处理连接关闭...
+	for i, c := range wsCons {
+		if c == conn {
+			wsCons = append(wsCons[:i], wsCons[i+1:]...)
+			break
+		}
+	}
+	// 处理连接关闭...
 }

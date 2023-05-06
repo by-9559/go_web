@@ -1,5 +1,7 @@
 FROM golang
 WORKDIR /go_web
+# COPY ./templates ./templates
+# COPY ./main ./main
 COPY . .
 RUN go build main.go
 RUN chmod 777 main

@@ -55,10 +55,10 @@
 
         const handleMessage = (event) => {
           const message = JSON.parse(event.data);
-          if(message){
+          if (message) {
             setMessages(message);
           }
-        
+
         };
 
         const handleClose = (event) => {
@@ -104,7 +104,7 @@
 
     const MessageList = ({ messages }) => {
       const messagesEndRef = useRef(null);
-
+      
       useEffect(() => {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }, [messages]);
