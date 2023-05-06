@@ -22,7 +22,7 @@ var redis = db.GetRedis()
 var wsCons []*websocket.Conn
 
 func getChatList() []string {
-	redis.LTrim("chat", -100, -1).Result()
+	redis.LTrim("chat", -300, -1).Result()
 	messages, _ := redis.LRange("chat", 0, -1).Result()
 	return messages
 }
