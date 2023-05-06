@@ -1,13 +1,17 @@
 package api
 
 import (
+
 	"fmt"
 	"log"
 	"net/http"
+
+
 	db "web/database"
 	tcp "web/service/tcp"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -21,6 +25,12 @@ var redis = db.GetRedis()
 var channel = "chat"
 var wsCons []*websocket.Conn
 
+type WebSocketConn struct {
+	ID      string
+	// Request *http.Request
+	Conn    *websocket.Conn
+}
+
 func getChatList() []string {
 	redis.LTrim(channel, -300, -1).Result()
 	messages, _ := redis.LRange(channel, 0, -1).Result()
@@ -28,15 +38,9 @@ func getChatList() []string {
 }
 
 func websocketHandler(c *gin.Context) {
-	// 升级HTTP连接为WebSocket连接
-	wsConn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	wsCons = append(wsCons, wsConn)
-
+	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
 	wsConn.WriteJSON(getChatList())
-	if err != nil {
-		// 处理错误
-		return
-	}
+	
 	defer wsConn.Close()
 
 	for {
