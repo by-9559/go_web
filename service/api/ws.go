@@ -1,10 +1,10 @@
 package api
 
 import (
-
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 
 	db "web/database"
@@ -24,6 +24,7 @@ var upgrader = websocket.Upgrader{
 var redis = db.GetRedis()
 var channel = "chat"
 var wsCons []*websocket.Conn
+var mutex sync.Mutex
 
 type WebSocketConn struct {
 	ID      string
@@ -40,17 +41,17 @@ func getChatList() []string {
 func websocketHandler(c *gin.Context) {
 	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
 	wsConn.WriteJSON(getChatList())
-	
+	wsCons = append(wsCons, wsConn)
 	defer wsConn.Close()
 
 	for {
 		// 读取客户端发送的消息
 		_, p, err := wsConn.ReadMessage()
 		if err != nil {
-			// 处理错误
+		
 			return
 		}
-
+		mutex.Lock() 
 		err = redis.RPush(channel, p).Err()
 		if err != nil {
 			panic(err)
@@ -75,7 +76,7 @@ func websocketHandler(c *gin.Context) {
 			}
 
 		}
-		// 打印接收到的消息
+		
 		log.Printf("Received message: %s\n", p)
 
 		err = wsConn.WriteJSON(getChatList())
@@ -83,6 +84,7 @@ func websocketHandler(c *gin.Context) {
 			// 处理错误
 			return
 		}
+		mutex.Unlock()
 
 	}
 }
