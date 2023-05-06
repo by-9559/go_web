@@ -23,5 +23,7 @@ func GetApi() {
 
 	r.GET("/ws", websocketHandler)
 
+	r.GET("/getTCPConns",tcplist)
+
 	r.Run("[::]:8081")
 }

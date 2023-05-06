@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"web/service/tcp"
-	db "web/database"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	db "web/database"
+	"web/service/tcp"
 )
 
 type DDNS struct {
@@ -70,9 +70,9 @@ func setip(c *gin.Context) {
 }
 
 type ConnectionPoolStatus struct {
-    MaxConnections int
-    NumConnections int
-    Connections    []string
+	MaxConnections int
+	NumConnections int
+	Connections    []string
 }
 
 func tcp_send(c *gin.Context) {
@@ -87,7 +87,7 @@ func tcp_send(c *gin.Context) {
 		fmt.Printf("对象:%s\r\n", conn.RemoteAddr())
 
 		_, err = conn.Write([]byte("你好天才"))
-	
+
 		str = conn.RemoteAddr().String()
 		if err != nil {
 			panic(err)
@@ -95,4 +95,12 @@ func tcp_send(c *gin.Context) {
 	}
 	fmt.Println(str)
 	c.String(http.StatusOK, "Message sent to TCP server: %s", str)
+}
+
+func tcplist(c *gin.Context) {
+	connections := tcp.Get_connections()
+	for _, conn := range *connections {
+		fmt.Println("Connection from:", conn.RemoteAddr().String())
+	
+	}
 }
