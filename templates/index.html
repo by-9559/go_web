@@ -35,12 +35,36 @@
           账号:<input type="text" name="user" defaultValue={account.user} ></input>
           密码:<input type="text" name="pwd" defaultValue={account.pwd} ></input>
           <button onClick={func}>登录</button>
+          <Addresses />
           <ChatBox />
         </div>
 
       );
     }
 
+    function Addresses() {
+      const [addresses, setAddresses] = useState([]);
+
+      useEffect(() => {
+        async function fetchAddresses() {
+          const response = await fetch('/getTCPConns');
+          const data = await response.json();
+          setAddresses(data.addresses);
+        }
+        fetchAddresses();
+      }, []);
+
+      return (
+        <div>
+          <h1>Addresses:</h1>
+          <ul>
+            {addresses.map((address, index) => (
+              <li key={index}>{address}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
     const ChatBox = () => {
       const [socket, setSocket] = useState(null);
       const [messages, setMessages] = useState([]);
@@ -104,7 +128,7 @@
 
     const MessageList = ({ messages }) => {
       const messagesEndRef = useRef(null);
-      
+
       useEffect(() => {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }, [messages]);

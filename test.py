@@ -2,7 +2,8 @@ import socket
 from datetime import datetime
 
 # 创建一个 TCP 连接
-HOST = 'qlmsmart.com'
+# HOST = 'qlmsmart.com'
+HOST = "120.77.79.24"
 PORT = 38082
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((HOST, PORT))

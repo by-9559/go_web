@@ -99,8 +99,10 @@ func tcp_send(c *gin.Context) {
 
 func tcplist(c *gin.Context) {
 	connections := tcp.Get_connections()
+	addrs := make([]string, 0, len(*connections))
 	for _, conn := range *connections {
-		fmt.Println("Connection from:", conn.RemoteAddr().String())
-	
+		addrs = append(addrs, conn.RemoteAddr().String())
 	}
+	c.JSON(http.StatusOK, gin.H{"addresses": addrs})
 }
+
