@@ -1,4 +1,3 @@
-# FROM  golang
 FROM  ubuntu:latest
 WORKDIR /go_web
 COPY ./main .
