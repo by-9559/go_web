@@ -22,7 +22,6 @@ func TCP_go() {
 
 	// 定义一个连接对象的切片和一个互斥锁
 
-
 	for {
 		// 等待客户端连接
 		conn, err := ln.Accept()
@@ -86,6 +85,6 @@ func handleConnection(conn net.Conn, connections *[]net.Conn, mutex *sync.Mutex)
 	mutex.Unlock()
 }
 
-func  Get_connections() *[]net.Conn {
-    return &connections
+func Get_connections() *[]net.Conn {
+	return &connections
 }

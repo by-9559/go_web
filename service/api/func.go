@@ -105,4 +105,3 @@ func tcplist(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"addresses": addrs})
 }
-

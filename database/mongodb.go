@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 
 	"log"
 	"time"
@@ -19,7 +20,7 @@ var db *mongo.Client
 func useDatabase() *mongo.Client {
 	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
 	clientOptions := options.Client().
-		ApplyURI("mongodb+srv://by9559:2FjNWHfZNnoHcoIY@serverdb.tgnra.mongodb.net/mydb?retryWrites=true&w=majority").
+		ApplyURI(os.Getenv("MONGODB_URI")).
 		SetServerAPIOptions(serverAPIOptions)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

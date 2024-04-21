@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-
 )
 
 func GetApi() {
@@ -23,7 +22,7 @@ func GetApi() {
 
 	r.GET("/ws", websocketHandler)
 
-	r.GET("/getTCPConns",tcplist)
+	r.GET("/getTCPConns", tcplist)
 
 	r.Run("[::]:8081")
 }
