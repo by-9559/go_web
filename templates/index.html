@@ -70,7 +70,10 @@
       const [messages, setMessages] = useState([]);
 
       useEffect(() => {
-        let ws = new WebSocket('/ws'); 
+        let loc = window.location;
+        let wsProtocol = loc.protocol === "https:" ? "wss://" : "ws://";
+        let wsURL = wsProtocol + loc.host + "/ws";
+        let ws = new WebSocket(wsURL); 
         setSocket(ws);
 
         const handleOpen = () => {
