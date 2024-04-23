@@ -59,6 +59,7 @@ func websocketHandler(c *gin.Context) {
 			_, err = c.Write([]byte(p))
 			if err != nil {
 				fmt.Println("Failed to send data to:", c.RemoteAddr())
+				tcp.RemoveConnection(c)
 			}
 
 		}

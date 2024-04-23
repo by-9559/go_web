@@ -1,5 +1,5 @@
 #!/bin/bash
-
+go build main.go
 IMAGE_NAME="war7ng/go-web"
 UTC_DATE_TIME=$(date +%Y%m%d-%H%M%S)
 IMAGE_VERSION="v2-${UTC_DATE_TIME}"

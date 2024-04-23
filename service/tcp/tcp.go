@@ -57,7 +57,7 @@ func handleConnection(conn net.Conn) {
 		sendMessageToOtherClients(conn, data)
 	}
 
-	removeConnection(conn)
+	RemoveConnection(conn)
 }
 
 // sendMessageToOtherClients 向其他客户端发送消息
@@ -78,13 +78,13 @@ func sendMessageToOtherClients(sender net.Conn, data string) {
 
     // 处理发送失败的连接
     for _, failedConn := range failedConns {
-        removeConnection(failedConn)
+        RemoveConnection(failedConn)
         failedConn.Close()  // 关闭失败的连接
     }
 }
 
 // removeConnection 从连接列表中移除指定的连接
-func removeConnection(conn net.Conn) {
+func RemoveConnection(conn net.Conn) {
     for i, c := range connections {
         if c == conn {
             connections = append(connections[:i], connections[i+1:]...)
