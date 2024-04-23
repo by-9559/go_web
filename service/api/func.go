@@ -82,7 +82,7 @@ func tcp_send(c *gin.Context) {
 	}
 	defer conn.Close()
 	str := ""
-	for _, conn := range *tcp.Get_connections() {
+	for _, conn := range *tcp.GetConnections() {
 		// 使用 conn 对象进行操作
 		fmt.Printf("对象:%s\r\n", conn.RemoteAddr())
 
@@ -98,7 +98,7 @@ func tcp_send(c *gin.Context) {
 }
 
 func tcplist(c *gin.Context) {
-	connections := tcp.Get_connections()
+	connections := tcp.GetConnections()
 	addrs := make([]string, 0, len(*connections))
 	for _, conn := range *connections {
 		addrs = append(addrs, conn.RemoteAddr().String())

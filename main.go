@@ -7,8 +7,9 @@ import (
 )
 
 func main() {
-	go tcp.TCP_go()
+	port := 8081
+	go tcp.TCPGo(port+1)
 	time.Sleep(time.Second*2)
-	go api.GetApi()
+	go api.GetApi(port)
 	select {}
 }

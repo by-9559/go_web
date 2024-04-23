@@ -53,7 +53,7 @@ func websocketHandler(c *gin.Context) {
 		mutex.Lock()
 		go redis.RPush(channel, p).Err()
 		
-		connections := tcp.Get_connections()
+		connections := tcp.GetConnections()
 		for _, c := range *connections {
 
 			_, err = c.Write([]byte(p))

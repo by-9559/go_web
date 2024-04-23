@@ -1,10 +1,12 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
-func GetApi() {
+func GetApi(port int) {
 
 	r := gin.Default()
 
@@ -24,5 +26,5 @@ func GetApi() {
 
 	r.GET("/getTCPConns", tcplist)
 
-	r.Run("[::]:8081")
+	r.Run(fmt.Sprintf("[::]:%d",port))
 }

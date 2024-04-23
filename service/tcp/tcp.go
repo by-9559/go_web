@@ -6,85 +6,94 @@ import (
 	"sync"
 )
 
-var connections []net.Conn
-var mutex sync.Mutex
+var (
+	connections []net.Conn
+	mutex       sync.Mutex
+)
 
-func TCP_go() {
-	// 监听本地的 TCP 1234 端口
-	ln, err := net.Listen("tcp", ":8082")
+// TCPGo 启动TCP服务器监听
+func TCPGo(port int) {
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d",port))
 	if err != nil {
 		panic(err)
 	}
-
 	defer ln.Close()
 
-	fmt.Println("TCP server is running on port 8082")
-
-	// 定义一个连接对象的切片和一个互斥锁
+	fmt.Printf("TCP server is running on port %d\n", port)
 
 	for {
-		// 等待客户端连接
 		conn, err := ln.Accept()
 		if err != nil {
-			panic(err)
+			fmt.Println("Error accepting connection:", err)
+			continue
 		}
 
-		// 将连接对象添加到切片中
 		mutex.Lock()
 		connections = append(connections, conn)
 		mutex.Unlock()
-		// 启动一个 goroutine 处理连接
-		go handleConnection(conn, &connections, &mutex)
+
+		go handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn, connections *[]net.Conn, mutex *sync.Mutex) {
+// handleConnection 处理每个客户端连接
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	// 读取客户端发送的数据
 	buffer := make([]byte, 1024)
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil {
-			fmt.Println("Connection closed:", conn.RemoteAddr())
+			fmt.Println("Connection closed by remote:", conn.RemoteAddr())
 			break
 		}
 
-		// 将收到的数据转成字符串并输出
 		data := string(buffer[:n])
-		// 向客户端发送响应数据
-		response := "Hello, client!     " + conn.RemoteAddr().String()
-		_, err = conn.Write([]byte(response))
-		if err != nil {
-			panic(err)
+		response := "Hello, client! " + conn.RemoteAddr().String()
+		if _, err = conn.Write([]byte(response)); err != nil {
+			fmt.Println("Error sending response to client:", conn.RemoteAddr())
 		}
 
-		// fmt.Println("Response sent to client:", response)
-
-		// 遍历连接对象的切片，向除了当前连接外的所有连接发送消息
-		mutex.Lock()
-		for _, c := range *connections {
-			if c != conn {
-				_, err = c.Write([]byte(data))
-				if err != nil {
-					fmt.Println("Failed to send data to:", c.RemoteAddr())
-				}
-			}
-		}
-		mutex.Unlock()
+		sendMessageToOtherClients(conn, data)
 	}
 
-	// 从切片中移除连接对象
-	mutex.Lock()
-	for i, c := range *connections {
-		if c == conn {
-			*connections = append((*connections)[:i], (*connections)[i+1:]...)
-			break
-		}
-	}
-	mutex.Unlock()
+	removeConnection(conn)
 }
 
-func Get_connections() *[]net.Conn {
+// sendMessageToOtherClients 向其他客户端发送消息
+func sendMessageToOtherClients(sender net.Conn, data string) {
+    mutex.Lock()
+    defer mutex.Unlock()
+
+    var failedConns []net.Conn  // 存储发送失败的连接
+
+    for _, conn := range connections {
+        if conn != sender {
+            if _, err := conn.Write([]byte(data)); err != nil {
+                fmt.Println("Failed to send data to other client:", conn.RemoteAddr())
+                failedConns = append(failedConns, conn)
+            }
+        }
+    }
+
+    // 处理发送失败的连接
+    for _, failedConn := range failedConns {
+        removeConnection(failedConn)
+        failedConn.Close()  // 关闭失败的连接
+    }
+}
+
+// removeConnection 从连接列表中移除指定的连接
+func removeConnection(conn net.Conn) {
+    for i, c := range connections {
+        if c == conn {
+            connections = append(connections[:i], connections[i+1:]...)
+            return
+        }
+    }
+}
+
+// GetConnections 返回当前的连接列表
+func GetConnections() *[]net.Conn {
 	return &connections
 }
