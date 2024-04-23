@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sync"
 
-
 	db "web/database"
 	tcp "web/service/tcp"
 
@@ -27,9 +26,9 @@ var wsCons []*websocket.Conn
 var mutex sync.Mutex
 
 type WebSocketConn struct {
-	ID      string
+	ID string
 	// Request *http.Request
-	Conn    *websocket.Conn
+	Conn *websocket.Conn
 }
 
 func getChatList() []string {
@@ -48,10 +47,10 @@ func websocketHandler(c *gin.Context) {
 		// 读取客户端发送的消息
 		_, p, err := wsConn.ReadMessage()
 		if err != nil {
-		
+
 			return
 		}
-		mutex.Lock() 
+		mutex.Lock()
 		err = redis.RPush(channel, p).Err()
 		if err != nil {
 			panic(err)
@@ -76,7 +75,7 @@ func websocketHandler(c *gin.Context) {
 			}
 
 		}
-		
+
 		log.Printf("Received message: %s\n", p)
 
 		err = wsConn.WriteJSON(getChatList())
