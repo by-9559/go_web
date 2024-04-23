@@ -51,10 +51,8 @@ func websocketHandler(c *gin.Context) {
 			return
 		}
 		mutex.Lock()
-		err = redis.RPush(channel, p).Err()
-		if err != nil {
-			panic(err)
-		}
+		go redis.RPush(channel, p).Err()
+		
 		connections := tcp.Get_connections()
 		for _, c := range *connections {
 
