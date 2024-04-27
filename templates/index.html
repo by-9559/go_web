@@ -14,15 +14,25 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script type="text/babel">
+
     const { useState, useEffect, useRef } = React
     const { WebSocket } = window
+    let loc = window.location;
+    const protocolFlag = loc.protocol === "https:";
+    const baseURL = protocolFlag ? '/goapi/' : '/'
     const App = () => {
       const [account, setAccount] = useState({ user: "", pwd: "" })
+      const apiClient = axios.create({
+        baseURL: baseURL,
+        // 你还可以在这里设置其他配置，如 headers, timeout 等
+      });
+
       const func = (v) => {
         console.log(account)
-        fetch("/login", {
-          method: 'POST',
+        axios.post("/login", {
+
           body: JSON.stringify(account)
         })
       }
@@ -70,10 +80,9 @@
       const [messages, setMessages] = useState([]);
 
       useEffect(() => {
-        let loc = window.location;
-        let wsProtocol = loc.protocol === "https:" ? "wss://" : "ws://";
-        let wsURL = wsProtocol + loc.host + "/ws";
-        let ws = new WebSocket(wsURL); 
+        const wsProtocol = protocolFlag ? 'wss://' : 'ws://'
+        let wsURL = wsProtocol + loc.host + baseURL + "ws";
+        let ws = new WebSocket(wsURL);
         setSocket(ws);
 
         const handleOpen = () => {
